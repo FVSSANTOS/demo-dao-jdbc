@@ -80,15 +80,50 @@ public class DepartmentDaoJDBC implements DepartmentDao{
 
     @Override
     public void deleteById(Integer id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
+        PreparedStatement st = null;
+        try{
+            st = conn.prepareStatement("DELETE FROM department WHERE Id = ?");
+
+            st.setInt(1, id);
+
+            st.executeUpdate();
+
+        }
+        catch(SQLException e){
+            throw new DbException(e.getMessage());
+        }
+        finally{
+            DB.closeStatement(st);
+        }
     }
 
     @Override
     public Department findById(Integer id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'findById'");
+        PreparedStatement st = null;
+        ResultSet rs = null;
+        try{
+            st = conn.prepareStatement(
+                "SELECT department.* FROM department "
+                +"WHERE Id = ?"
+            );
+
+            st.setInt(1, id);
+
+            rs = st.executeQuery();
+
+            if(rs.next()){
+                Department dep = instanciateDepartment(rs);
+                return dep;
+            }
+            return null;
+        }catch(SQLException e){
+            throw new DbException(e.getMessage());
+        }finally{
+            DB.closeStatement(st);
+            DB.closeResultSet(rs);
+        }
     }
+    
 
     @Override
     public List<Department> findAll() {
@@ -96,5 +131,10 @@ public class DepartmentDaoJDBC implements DepartmentDao{
         throw new UnsupportedOperationException("Unimplemented method 'findAll'");
     }
 
-
+    private Department instanciateDepartment(ResultSet rs) throws SQLException {
+        Department dep = new Department();
+        dep.setId(rs.getInt("Id"));
+        dep.setName(rs.getString("Name"));
+        return dep;
+    }
 }
